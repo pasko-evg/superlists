@@ -1,4 +1,5 @@
 .idea
+.run
 venv
 geckodriver.log
 db.sqlite3
