@@ -26,3 +26,11 @@
         ├── source
         ├── static
         └── virtualenv
+
+## Маркировка релиза командой git tag
+    $ git tag LIVE
+    $ export TAG=$(date +DEPLOYED-%F/%H%M) # генерирует метку времени
+    $ echo $TAG # должна показать "DEPLOYED-" и затем метку времени
+    $ git tag $TAG
+    $ git push origin LIVE $TAG # запихивает теги в репо
+    $ git log --graph --oneline --decorate # проверить тэги
