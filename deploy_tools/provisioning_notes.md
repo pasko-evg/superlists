@@ -32,5 +32,6 @@
     $ export TAG=$(date +DEPLOYED-%F/%H%M) # генерирует метку времени
     $ echo $TAG # должна показать "DEPLOYED-" и затем метку времени
     $ git tag $TAG
-    $ git push origin LIVE $TAG # запихивает теги в репо
+    $ git push origin LIVE $TAG # запихивает указанные теги в репо
+    $ git push origin --tags    # запихивает все теги в репо
     $ git log --graph --oneline --decorate # проверить тэги
