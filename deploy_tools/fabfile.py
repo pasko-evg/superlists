@@ -1,3 +1,6 @@
+# use: fab deploy:host=evgeniy@192.168.126.129,site_name=superlists-staging.evgeniy.com
+# use: fab deploy:host=evgeniy@192.168.126.129,site_name=superlists.evgeniy.com
+
 from fabric.contrib.files import append, exists, sed
 from fabric.api import env, local, run
 import random
@@ -21,17 +24,17 @@ def _get_latest_source(source_folder):
     run(f'cd {source_folder} && git reset --hard {current_commit}')
 
 
-def _update_settings(source_folder, site_name):
+def _update_settings(source_folder):
     """ Обновить настройки """
     setting_path = source_folder + '/superlists/settings.py'
     sed(setting_path, 'DEBUG = True', 'DEBUG = False')
-    sed(setting_path, 'ALLOWED_HOSTS = .+$', f'ALLOWED_HOSTS = ["{site_name}"]')
+    sed(setting_path, 'ALLOWED_HOSTS = .+$', f'ALLOWED_HOSTS = ["{env.host}"]')
     secret_key_file = source_folder + '/superlists/secret_key.py'
     if not exists(secret_key_file):
         chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
         key = ''.join(random.SystemRandom().choice(chars) for _ in range(50))
         append(secret_key_file, f'SECRET_KEY = "{key}"')
-    append(setting_path, '\nfrom .secret_key import SECRET_KEY')
+    append(setting_path, 'from .secret_key import SECRET_KEY')
 
 
 def _update_virtualenv(source_folder):
@@ -52,13 +55,13 @@ def _update_database(source_folder):
     run(f'cd {source_folder} && ../virtualenv/bin/python manage.py migrate --noinput')
 
 
-def deploy():
+def deploy(site_name):
     """ Развернуть """
-    site_folder = f'/home/{env.user}/sites/{env.host}'
+    site_folder = f'/home/{env.user}/sites/{site_name}'
     source_folder = site_folder + '/source'
     _create_directory_structure_if_necessary(site_folder)
     _get_latest_source(source_folder)
-    _update_settings(source_folder, env.host)
+    _update_settings(source_folder)
     _update_virtualenv(source_folder)
     _update_static_files(source_folder)
     _update_database(source_folder)
