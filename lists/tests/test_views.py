@@ -2,6 +2,7 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.test import TestCase
 from django.urls import resolve
+from django.utils.html import escape
 
 from lists.models import Item, List
 from lists.views import home_page
@@ -72,6 +73,24 @@ class ListViewTest(TestCase):
         correct_list = List.objects.create()
         response = self.client.get(f'/lists/{correct_list.id}/')
         self.assertEqual(response.context['list'], correct_list)
+
+
+class NewListTest(TestCase):
+    """ Тестирование нового списка """
+
+    def test_validation_errors_are_sent_back_to_home_page_template(self):
+        """ Тест: Ошибки валидации отсылаются назад в шаблон домашней страницы """
+        response = self.client.post('/lists/new', data={'item_text': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'home.html')
+        expected_error = escape("You can't have an empty list item")
+        self.assertContains(response, expected_error)
+
+    def test_invalid_list_items_arent_saved(self):
+        """ Тест: Недопустимые элементы списка не должны сохраняться """
+        self.client.post('/lists/new', data={'item_text': ''})
+        self.assertEqual(List.objects.count(), 0)
+        self.assertEqual(Item.objects.count(), 0)
 
 
 class NewItemTest(TestCase):
