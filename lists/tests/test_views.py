@@ -1,3 +1,5 @@
+from unittest import skip
+
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.test import TestCase
@@ -140,6 +142,18 @@ class ListViewTest(TestCase):
         response = self.post_invalid_input()
         self.assertContains(response, escape(EMPTY_ITEM_ERROR))
 
+    @skip
+    def test_duplicate_item_validation_errors_end_up_on_lists_page(self):
+        """ Тест: Ошибки валидации повторяющегося элемента оканчиваются на странице списков"""
+        list1 = List.objects.create()
+        item1 = Item.objects.create(list=list1, text='Item text')
+        response = self.client.post(f'/lists/{list1.id}/', data={'text': 'Item text'})
+        expected_error = escape("You've already got this in your list")
+
+        self.assertContains(response, expected_error)
+        self.assertTemplateUsed(response, 'list.html')
+        self.assertEqual(Item.objects.all().count(), 1)
+
 
 class NewListTest(TestCase):
     """ Тестирование нового списка """
@@ -165,3 +179,4 @@ class NewListTest(TestCase):
         self.client.post('/lists/new', data={'item_text': ''})
         self.assertEqual(List.objects.count(), 0)
         self.assertEqual(Item.objects.count(), 0)
+
