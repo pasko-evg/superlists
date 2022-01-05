@@ -10,6 +10,17 @@
 </head>
 <body>
 <div class="container">
+    <nav class="navbar navbar-light bg-light" role="navigation">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Superlists</a>
+            <form class="d-flex mb-0" action="#" method="post">
+                {% csrf_token %}
+                <span class="navbar-text text-nowrap me-2">Enter email to log in:</span>
+                <input class="form-control me-2" name="email" type="text">
+
+            </form>
+        </div>
+    </nav>
     <div class="row">
         <div class="col-md-6 offset-md-3 mt-4 p-5 bg-primary text-white rounded">
             <div class="text-center">
