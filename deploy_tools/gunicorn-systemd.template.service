@@ -4,8 +4,10 @@ Description=Gunicorn server for SITENAME
 [Service]
 Restart=on-failure
 User=evgeniy
+Environment=EMAIL_PASSWORD=*password*
 WorkingDirectory=/home/evgeniy/sites/SITENAME/source
-ExecStart=/home/evgeniy/sites/SITENAME/virtualenv/bin/gunicorn --bind unix:/tmp/SITENAME.socket superlists.wsgi:application
+ExecStart=/home/evgeniy/sites/SITENAME/virtualenv/bin/gunicorn --bind unix:/tmp/SITENAME.socket --capture-output --access-logfile ../access.log  --error-logfile ../error.log superlists.wsgi:application
+
 
 [Install]
 WantedBy=multi-user.target

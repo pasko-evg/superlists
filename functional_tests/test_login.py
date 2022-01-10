@@ -17,6 +17,7 @@ class LoginTest(FunctionalTest):
 
     def wait_for_email(self, test_email, subject):
         """ Ожидать электронное сообщение """
+        # TODO: Переделать метод, нужна проверка письма по дате отправки, локальная почта глючит
         if not self.staging_server:
             email = mail.outbox[0]
             self.assertIn(test_email, email.to)
@@ -31,15 +32,17 @@ class LoginTest(FunctionalTest):
             inbox.pass_(os.environ['TEST_MAIL_PASSWORD'])
             while time.time() - start < 60:
                 count, _ = inbox.stat()
+                # print(f'{count=}')
                 for i in reversed(range(max(1, count - 10), count + 1)):
                     print(f'Getting msg {i}')
-                    _, lines, __ = inbox.retr(i)
+                    response, lines, __ = inbox.retr(i)
+                    # print(f'{response=}')
                     lines = [l.decode('utf8') for l in lines]
                     print(lines)
-                    if f'Subject: {subject} in lines':
+                    if f'Subject: {subject}' in lines:
                         email_id = i
                         body = '\n'.join(lines)
-                        print(f'{body=}')
+                        # print(f'{body=}')
                         return body
                 time.sleep(5)
         finally:
@@ -48,7 +51,7 @@ class LoginTest(FunctionalTest):
             inbox.quit()
 
     def test_can_get_email_link_to_log_in(self):
-        """ Тест: Модно получить ссылку по почте для регистрации """
+        """ Тест: Можно получить ссылку по почте для регистрации """
         # Эдит заходит на офигительный сайт суперсписков и впервые замечает раздел "Войти"
         # в навигационной панели, он говорит ввести ей свой адрес электронной почты, что она и делает
         if self.staging_server:
@@ -74,6 +77,7 @@ class LoginTest(FunctionalTest):
         if not url_search:
             self.fail(f'Could not find url in email body:\n{body}')
         url = url_search.group(0)
+        print(f'{url=}')
         self.assertIn(self.live_server_url, url)
 
         # Эдит нажимает на ссылку
