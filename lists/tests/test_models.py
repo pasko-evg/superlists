@@ -82,3 +82,10 @@ class ListModelTest(TestCase):
         user = User.objects.create(email='a@b.com')
         list_ = List.objects.create(owner=user)
         self.assertIn(list_, user.list_set.all())
+
+    def test_list_name_is_first_item_text(self):
+        """ Тест: Имя списка является текстом первого элемента """
+        list_ = List.objects.create()
+        Item.objects.create(list=list_, text='First item')
+        Item.objects.create(list=list_, text='Second item')
+        self.assertEqual(list_.name, 'First item')

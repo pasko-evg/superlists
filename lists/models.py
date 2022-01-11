@@ -9,6 +9,11 @@ class List(models.Model):
     """ Список дел """
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
 
+    @property
+    def name(self):
+        """ Имя """
+        return self.item_set.first().text
+
     def get_absolute_url(self):
         """
         Получить абсолютный URL
