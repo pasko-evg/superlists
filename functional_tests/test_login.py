@@ -1,9 +1,12 @@
 import os
-import poplib
 import re
+import ssl
+import mailparser
 import time
+from datetime import datetime
 
 from django.core import mail
+from imapclient import IMAPClient
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -17,38 +20,44 @@ class LoginTest(FunctionalTest):
 
     def wait_for_email(self, test_email, subject):
         """ Ожидать электронное сообщение """
-        # TODO: Переделать метод, нужна проверка письма по дате отправки, локальная почта глючит
         if not self.staging_server:
             email = mail.outbox[0]
             self.assertIn(test_email, email.to)
             self.assertEqual(email.subject, subject)
             return email.body
 
-        email_id = None
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
         start = time.time()
-        inbox = poplib.POP3_SSL('mail.evg-project.org')
-        try:
-            inbox.user(test_email)
-            inbox.pass_(os.environ['TEST_MAIL_PASSWORD'])
+        start_date = datetime.utcnow()
+
+        email_id = None
+        email_body = None
+        email_user = test_email
+        email_password = os.environ['TEST_MAIL_PASSWORD']
+        email_server = 'mail.evg-project.org'
+
+        with IMAPClient(host=email_server, ssl_context=ssl_context) as client:
+            client.login(email_user, email_password)
+            client.select_folder('INBOX')
+            messages = client.search(['NOT', 'DELETED'])
             while time.time() - start < 60:
-                count, _ = inbox.stat()
-                # print(f'{count=}')
-                for i in reversed(range(max(1, count - 10), count + 1)):
-                    print(f'Getting msg {i}')
-                    response, lines, __ = inbox.retr(i)
-                    # print(f'{response=}')
-                    lines = [l.decode('utf8') for l in lines]
-                    print(lines)
-                    if f'Subject: {subject}' in lines:
-                        email_id = i
-                        body = '\n'.join(lines)
-                        # print(f'{body=}')
-                        return body
-                time.sleep(5)
-        finally:
+                response = client.fetch(messages, ['RFC822'])
+                for message_id, data in reversed(response.items()):
+                    email = mailparser.parse_from_bytes(data[b'RFC822'])
+                    mail_send_date_delta = (start_date - email.date).total_seconds()
+                    if mail_send_date_delta < 20 and subject in email.mail.get('subject'):
+                        email_id = message_id
+                        email_body = email.body
+                if email_body:
+                    break
+                else:
+                    time.sleep(5)
             if email_id:
-                inbox.dele(email_id)
-            inbox.quit()
+                client.move([email_id], 'Trash')
+        return email_body
 
     def test_can_get_email_link_to_log_in(self):
         """ Тест: Можно получить ссылку по почте для регистрации """
