@@ -16,6 +16,12 @@
             {% if user.email %}
                 <div class="d-flex mb-0">
                     <ul class="navbar-nav">
+
+                        <li class="nav-item"><a class="" href="{% url 'my_lists' user.email %}">My Lists</a></li>
+                    </ul>
+                </div>
+                <div class="d-flex mb-0">
+                    <ul class="navbar-nav">
                         <li class="nav-item navbar-text me-2">Logged in as {{ user.email }}</li>
                         <li class="nav-item"><a class="btn btn-primary" href="{% url 'logout' %}">Log out</a></li>
                     </ul>
@@ -49,21 +55,29 @@
         <div class="col-md-8 offset-md-2 mt-4 p-5 bg-primary text-white rounded">
             <div class="text-center">
                 <h1>{% block header_text %}{% endblock %}</h1>
-                <form id="list_form" method="post" action="{% block form_action %}{% endblock %}">
-                    {% csrf_token %}
-                    {{ form.text }}
-                    {% if form.errors %}
-                        <div class="has-error">
-                            <span class="help-block">{{ form.text.errors }}</span>
-                        </div>
-                    {% endif %}
-                </form>
+                {% block list_form %}
+                    <form id="list_form" method="post" action="{% block form_action %}{% endblock %}">
+                        {% csrf_token %}
+                        {{ form.text }}
+                        {% if form.errors %}
+                            <div class="has-error">
+                                <span class="help-block">{{ form.text.errors }}</span>
+                            </div>
+                        {% endif %}
+                    </form>
+                {% endblock %}
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-6 offset-md-3">
+        <div class="col-md-8 offset-md-2">
             {% block table %}
+            {% endblock %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            {% block extra_content %}
             {% endblock %}
         </div>
     </div>
