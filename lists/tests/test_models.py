@@ -1,7 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from lists.models import Item, List
+
+User = get_user_model()
 
 
 class ListModelsTest(TestCase):
@@ -69,3 +72,13 @@ class ListModelTest(TestCase):
         """ Тест: Наличие абсолютной ссылки """
         list_ = List.objects.create()
         self.assertEqual(list_.get_absolute_url(), f'/lists/{list_.id}/')
+
+    def test_lists_owner_is_optional(self):
+        """ Тест: Владелец списка является необязательным """
+        List.objects.create()
+
+    def test_lists_can_have_owners(self):
+        """ Тест: Списки могут иметь владельцев """
+        user = User.objects.create(email='a@b.com')
+        list_ = List.objects.create(owner=user)
+        self.assertIn(list_, user.list_set.all())
