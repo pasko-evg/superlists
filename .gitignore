@@ -10,6 +10,7 @@ __pycache__
 # Project
 geckodriver.log
 db.sqlite3
+functional_tests/screendumps
 
 # Static Files
 static_prom
