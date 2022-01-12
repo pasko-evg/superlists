@@ -32,4 +32,4 @@ class LayoutAndStylingTest(FunctionalTest):
             512,
             delta=10
         )
-        self.fail('test')
+
