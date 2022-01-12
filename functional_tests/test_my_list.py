@@ -55,12 +55,13 @@ class MyListTest(FunctionalTest):
         second_list_url = self.browser.current_url
 
         # Под заголовком Мои Списки появляется ее новый список
+        self.browser.find_element(by=By.LINK_TEXT, value='My Lists').click()
         self.wait_for(lambda: self.browser.find_element(by=By.LINK_TEXT, value='Click cows'))
         self.browser.find_element(by=By.LINK_TEXT, value='Click cows').click()
         self.wait_for(lambda: self.assertEqual(self.browser.current_url, second_list_url))
 
         # Она выходит из системы. Опция Мои Списки исчезает
-        self.browser.find_element(by=By.LINK_TEXT, value='Log Out').click()
+        self.browser.find_element(by=By.LINK_TEXT, value='Log out').click()
         self.wait_for(lambda: self.assertEqual(
-            self.browser.find_element(By.LINK_TEXT, 'My lists'), []
+            self.browser.find_elements(By.LINK_TEXT, 'My lists'), []
         ))
